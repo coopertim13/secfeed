@@ -1,0 +1,12 @@
+{
+  "name": "secfeed",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "rss-parser": "^3.13.0"
+  }
+}
