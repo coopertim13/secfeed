@@ -4,13 +4,16 @@ const EMOJI  = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡' };
 export async function postToDiscord(webhookUrl, items) {
   const timestamp = new Date().toUTCString();
 
-  const embeds = items.map(item => ({
-    title: `${EMOJI[item.severity] ?? '⚪'} #${item.rank} ${item.headline}`,
-    description: item.why,
-    url: item.link,
-    color: COLORS[item.severity] ?? 0x888888,
-    footer: { text: `${item.source} • ${new Date(item.pubDate).toUTCString()}` },
-  }));
+  const embeds = items.map(item => {
+    const embed = {
+      title: `${EMOJI[item.severity] ?? '⚪'} #${item.rank} ${item.headline}`,
+      description: `${item.why}\n\n[Read more](${item.link || '#'})`,
+      color: COLORS[item.severity] ?? 0x888888,
+      footer: { text: `${item.source ?? 'Unknown'} • ${item.pubDate ? new Date(item.pubDate).toUTCString() : 'Unknown date'}` },
+    };
+    if (item.link) embed.url = item.link;
+    return embed;
+  });
 
   const payload = {
     username: 'SecFeed',

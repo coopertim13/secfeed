@@ -6,15 +6,11 @@ const RSS_FEEDS = [
   { name: 'The Hacker News',  url: 'https://feeds.feedburner.com/TheHackersNews' },
   { name: 'BleepingComputer', url: 'https://www.bleepingcomputer.com/feed/' },
   { name: 'SANS ISC',         url: 'https://isc.sans.edu/rssfeed_full.xml' },
-  { name: 'SecurityWeek',     url: 'https://feeds.feedburner.com/securityweek' },
   { name: 'Exploit-DB',       url: 'https://www.exploit-db.com/rss.xml' },
   { name: 'Full Disclosure',  url: 'https://seclists.org/rss/fulldisclosure.rss' },
   { name: 'ZDI',              url: 'https://www.zerodayinitiative.com/rss/published/' },
   { name: 'Krebs on Security',url: 'https://krebsonsecurity.com/feed/' },
   { name: 'CISA Alerts',      url: 'https://www.cisa.gov/uscert/ncas/alerts.xml' },
-  { name: 'Packet Storm',     url: 'https://rss.packetstormsecurity.com/files/' },
-  { name: 'Dark Reading',     url: 'https://www.darkreading.com/rss_simple.asp' },
-  { name: 'Rapid7 Blog',      url: 'https://www.rapid7.com/blog/feed/' },
 ];
 
 export async function fetchFeeds() {

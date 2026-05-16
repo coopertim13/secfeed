@@ -40,7 +40,7 @@ async function main() {
     return;
   }
 
-  console.log('Triaging with Claude...');
+  console.log('Triaging...');
   const top5 = await triageItems(fresh);
 
   console.log('Posting to Discord...');

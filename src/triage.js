@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-lite' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 export async function triageItems(items) {
   if (items.length === 0) return [];
@@ -40,11 +40,17 @@ export async function triageItems(items) {
 
   const top5 = JSON.parse(text);
 
-  return top5.map(entry => ({
-    ...items[entry.itemIndex - 1],
-    rank: entry.rank,
-    headline: entry.headline,
-    why: entry.why,
-    severity: entry.severity,
-  }));
+  const results = top5
+    .map(entry => {
+      const item = items[entry.itemIndex - 1];
+      if (!item) {
+        console.warn(`[triage] itemIndex ${entry.itemIndex} out of range (total: ${items.length}), skipping`);
+        return null;
+      }
+      return { ...item, rank: entry.rank, headline: entry.headline, why: entry.why, severity: entry.severity };
+    })
+    .filter(Boolean);
+
+  console.log(`[triage] ${results.length}/5 items resolved successfully`);
+  return results;
 }
