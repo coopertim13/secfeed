@@ -9,6 +9,12 @@ const RSS_FEEDS = [
   { name: 'SecurityWeek',     url: 'https://feeds.feedburner.com/securityweek' },
   { name: 'Exploit-DB',       url: 'https://www.exploit-db.com/rss.xml' },
   { name: 'Full Disclosure',  url: 'https://seclists.org/rss/fulldisclosure.rss' },
+  { name: 'ZDI',              url: 'https://www.zerodayinitiative.com/rss/published/' },
+  { name: 'Krebs on Security',url: 'https://krebsonsecurity.com/feed/' },
+  { name: 'CISA Alerts',      url: 'https://www.cisa.gov/uscert/ncas/alerts.xml' },
+  { name: 'Packet Storm',     url: 'https://rss.packetstormsecurity.com/files/' },
+  { name: 'Dark Reading',     url: 'https://www.darkreading.com/rss_simple.asp' },
+  { name: 'Rapid7 Blog',      url: 'https://www.rapid7.com/blog/feed/' },
 ];
 
 export async function fetchFeeds() {
@@ -54,30 +60,57 @@ export async function fetchFeeds() {
     console.warn(`[fetcher] CISA KEV: ${e.message}`);
   }
 
-  // NVD — critical CVEs published in the last 6 hours
+  // NVD — CRITICAL and HIGH CVEs published in the last 6 hours
+  for (const severity of ['CRITICAL', 'HIGH']) {
+    try {
+      const now = new Date();
+      const sixHoursAgo = new Date(now - 6 * 60 * 60 * 1000);
+      const fmt = d => d.toISOString().replace('.000Z', 'Z');
+      const url =
+        `https://services.nvd.nist.gov/rest/json/cves/2.0` +
+        `?pubStartDate=${fmt(sixHoursAgo)}&pubEndDate=${fmt(now)}&cvssV3Severity=${severity}`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      for (const v of (data.vulnerabilities || []).slice(0, 10)) {
+        const cve = v.cve;
+        const desc = cve.descriptions?.find(d => d.lang === 'en')?.value || '';
+        const score = cve.metrics?.cvssMetricV31?.[0]?.cvssData?.baseScore
+                   ?? cve.metrics?.cvssMetricV30?.[0]?.cvssData?.baseScore
+                   ?? '';
+        items.push({
+          id: cve.id,
+          title: `[NVD ${severity}${score ? ' ' + score : ''}] ${cve.id}`,
+          description: desc.slice(0, 500),
+          link: `https://nvd.nist.gov/vuln/detail/${cve.id}`,
+          pubDate: cve.published,
+          source: `NVD ${severity}`,
+        });
+      }
+    } catch (e) {
+      console.warn(`[fetcher] NVD ${severity}: ${e.message}`);
+    }
+  }
+
+  // GitHub Advisory Database — reviewed advisories, critical + high, most recent 20
   try {
-    const now = new Date();
-    const sixHoursAgo = new Date(now - 6 * 60 * 60 * 1000);
-    const fmt = d => d.toISOString().replace('.000Z', 'Z');
-    const url =
-      `https://services.nvd.nist.gov/rest/json/cves/2.0` +
-      `?pubStartDate=${fmt(sixHoursAgo)}&pubEndDate=${fmt(now)}&cvssV3Severity=CRITICAL`;
-    const resp = await fetch(url);
-    const data = await resp.json();
-    for (const v of (data.vulnerabilities || []).slice(0, 10)) {
-      const cve = v.cve;
-      const desc = cve.descriptions?.find(d => d.lang === 'en')?.value || '';
+    const resp = await fetch(
+      'https://api.github.com/advisories?type=reviewed&per_page=20&sort=published&direction=desc',
+      { headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } }
+    );
+    const advisories = await resp.json();
+    for (const adv of advisories) {
+      if (!['critical', 'high'].includes(adv.severity)) continue;
       items.push({
-        id: cve.id,
-        title: `[NVD CRITICAL] ${cve.id}`,
-        description: desc.slice(0, 500),
-        link: `https://nvd.nist.gov/vuln/detail/${cve.id}`,
-        pubDate: cve.published,
-        source: 'NVD',
+        id: adv.ghsa_id,
+        title: `[GHSA ${adv.severity.toUpperCase()}] ${adv.ghsa_id}: ${adv.summary}`,
+        description: (adv.description || '').slice(0, 500),
+        link: adv.html_url || `https://github.com/advisories/${adv.ghsa_id}`,
+        pubDate: adv.published_at,
+        source: 'GitHub Advisories',
       });
     }
   } catch (e) {
-    console.warn(`[fetcher] NVD: ${e.message}`);
+    console.warn(`[fetcher] GitHub Advisories: ${e.message}`);
   }
 
   return items;
