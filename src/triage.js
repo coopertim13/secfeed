@@ -16,11 +16,17 @@ export async function triageItems(items) {
   const prompt =
     `You are a cybersecurity analyst. Review these security news items and select the TOP 5 ` +
     `most critical/impactful ones. Prioritize in this order:\n` +
-    `1. Active 0-day exploitation or CISA KEV additions\n` +
-    `2. ZDI advisories and GitHub Advisories (GHSA) for supply chain / open source RCE\n` +
-    `3. Web app RCE, SQLi, auth bypass, XSS in widely-used software\n` +
-    `4. Critical/High CVEs (CVSS ≥ 8.5) in common infrastructure or cloud services\n` +
-    `5. Significant threat actor campaigns, novel malware, or novel attack techniques\n\n` +
+    `1. Active 0-day exploitation or CISA KEV additions (always treat KEV additions as high priority — ` +
+    `CISA adding a CVE to KEV means active exploitation is confirmed regardless of the CVE's age)\n` +
+    `2. ZDI, MSRC, Red Hat, or OSV advisories for RCE / privilege escalation in widely-deployed software\n` +
+    `3. GitHub Advisories (GHSA) for supply chain / open source RCE\n` +
+    `4. Threat intel from Talos, Unit 42, Mandiant, Securelist — novel campaigns, malware, or TTPs\n` +
+    `5. Web app RCE, SQLi, auth bypass, XSS in widely-used software\n` +
+    `6. Critical/High CVEs (CVSS ≥ 8.5) in common infrastructure or cloud services\n\n` +
+    `IMPORTANT — freshness: deprioritize or skip any NVD CVEs whose ID indicates they were assigned ` +
+    `more than 1 year ago (e.g. CVE-2023-* items that have just now appeared in NVD). ` +
+    `These are old vulnerabilities being documented late and are rarely actionable breaking news. ` +
+    `Prefer freshly assigned CVEs, Patch Tuesday releases, and recently published advisories.\n\n` +
     `Return ONLY a JSON array of exactly 5 objects — no markdown, no explanation:\n` +
     `[\n` +
     `  {\n` +

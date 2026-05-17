@@ -34,8 +34,8 @@ async function main() {
   // Mark everything seen regardless of whether we post
   for (const item of all) if (item.id) seen.add(item.id);
 
-  if (fresh.length < 3) {
-    console.log('Fewer than 3 new items — skipping digest (nothing novel)');
+  if (fresh.length === 0) {
+    console.log('No new items — skipping digest');
     saveSeen(seen);
     return;
   }

@@ -2,7 +2,7 @@ name: Security Feed
 
 on:
   schedule:
-    - cron: '0 */6 * * *'   # 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: '23 1,7,13,19 * * *'  # 01:23, 07:23, 13:23, 19:23 UTC
   workflow_dispatch:          # manual trigger for testing
 
 jobs:
