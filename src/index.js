@@ -28,11 +28,13 @@ async function main() {
   const all = await fetchFeeds();
   console.log(`Fetched ${all.length} total items`);
 
-  const fresh = all.filter(item => item.id && !seen.has(item.id));
-  console.log(`${fresh.length} new items after deduplication`);
-
-  // Mark everything seen regardless of whether we post
-  for (const item of all) if (item.id) seen.add(item.id);
+  const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+  const fresh = all.filter(item => {
+    if (!item.id || seen.has(item.id)) return false;
+    const pub = new Date(item.pubDate);
+    return !isNaN(pub.getTime()) && pub >= cutoff;
+  });
+  console.log(`${fresh.length} new items after deduplication and date filter (cutoff: ${cutoff.toISOString()})`);
 
   if (fresh.length === 0) {
     console.log('No new items — skipping digest');
@@ -46,6 +48,9 @@ async function main() {
   console.log('Posting to Discord...');
   await postToDiscord(WEBHOOK_URL, top5);
 
+  // Only mark posted items as seen so unselected items can be reconsidered next run.
+  // The 48-hour date filter is what clears out stale items, not the seen cache.
+  for (const item of top5) if (item.id) seen.add(item.id);
   saveSeen(seen);
   console.log('Done.');
 }

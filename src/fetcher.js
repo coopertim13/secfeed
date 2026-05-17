@@ -1,34 +1,34 @@
 import Parser from 'rss-parser';
 
-const parser = new Parser({ timeout: 10000 });
+const parser = new Parser({
+  timeout: 10000,
+  headers: { 'User-Agent': 'Mozilla/5.0 (compatible; secfeed/1.0)' },
+});
 
 const RSS_FEEDS = [
   // News / editorial
   { name: 'The Hacker News',    url: 'https://feeds.feedburner.com/TheHackersNews' },
   { name: 'BleepingComputer',   url: 'https://www.bleepingcomputer.com/feed/' },
   { name: 'Dark Reading',       url: 'https://www.darkreading.com/rss.xml' },
-  { name: 'SecurityWeek',       url: 'https://www.securityweek.com/feed/' },
   { name: 'Krebs on Security',  url: 'https://krebsonsecurity.com/feed/' },
-  { name: 'Ars Technica Sec',   url: 'https://feeds.arstechnica.com/arstechnica/security' },
+  { name: 'Ars Technica Sec',   url: 'https://arstechnica.com/security/feed/' },
   { name: 'The Register Sec',   url: 'https://www.theregister.com/security/headlines.atom' },
   { name: 'SecurityAffairs',    url: 'https://securityaffairs.com/feed' },
 
   // Threat intelligence / research blogs
-  { name: 'Talos Intelligence', url: 'https://blog.talosintelligence.com/feeds/posts/default' },
+  { name: 'Talos Intelligence', url: 'https://blog.talosintelligence.com/rss/' },
   { name: 'Unit 42',            url: 'https://unit42.paloaltonetworks.com/feed/' },
   { name: 'Securelist',         url: 'https://securelist.com/feed/' },
   { name: 'WeLiveSecurity',     url: 'https://www.welivesecurity.com/feed/' },
-  { name: 'Rapid7 Blog',        url: 'https://www.rapid7.com/blog/feed/' },
+  { name: 'Rapid7 Blog',        url: 'https://www.rapid7.com/blog/rss/' },
   { name: 'Google Proj Zero',   url: 'https://googleprojectzero.blogspot.com/feeds/posts/default' },
   { name: 'Mandiant Blog',      url: 'https://www.mandiant.com/resources/blog/rss.xml' },
-  { name: 'MSRC Blog',          url: 'https://msrc.microsoft.com/blog/feed/' },
 
   // Vulnerability / exploit feeds
   { name: 'SANS ISC',           url: 'https://isc.sans.edu/rssfeed_full.xml' },
   { name: 'Exploit-DB',         url: 'https://www.exploit-db.com/rss.xml' },
   { name: 'Full Disclosure',    url: 'https://seclists.org/rss/fulldisclosure.rss' },
   { name: 'ZDI',                url: 'https://www.zerodayinitiative.com/rss/published/' },
-  { name: 'Packet Storm',       url: 'https://rss.packetstormsecurity.com/' },
 
   // Government / institutional
   { name: 'CISA Alerts',        url: 'https://www.cisa.gov/uscert/ncas/alerts.xml' },
@@ -150,7 +150,7 @@ export async function fetchFeeds() {
       items.push({
         id: `redhat-${cve.CVE}`,
         title: `[Red Hat Critical] ${cve.CVE}`,
-        description: (cve.bugzilla_description || cve.CVE).slice(0, 500),
+        description: (cve.bugzilla_description || cve.CVE || '').slice(0, 500),
         link: `https://access.redhat.com/security/cve/${cve.CVE}`,
         pubDate: cve.public_date,
         source: 'Red Hat Security',
